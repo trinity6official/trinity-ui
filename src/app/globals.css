@@ -198,3 +198,301 @@ h1 {
     animation-iteration-count: 1 !important;
   }
 }
+
+.companyExperience {
+  width: min(1180px, calc(100% - 32px));
+  margin: 0 auto 96px;
+}
+
+.companyExperienceHeader {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 32px;
+  margin-bottom: 28px;
+}
+
+.companyExperienceHeader h2 {
+  max-width: 700px;
+  margin: 8px 0 12px;
+  font-size: clamp(2rem, 5vw, 4rem);
+  line-height: 0.98;
+  letter-spacing: -0.05em;
+}
+
+.companyExperienceHeader > div > p:last-child {
+  max-width: 680px;
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+.companyHint {
+  max-width: 220px;
+  color: var(--muted);
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.companyWorkspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: 20px;
+}
+
+.companyBuilding {
+  position: relative;
+  min-height: 560px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 28px;
+  background:
+    radial-gradient(circle at 75% 10%, rgb(89 117 255 / 12%), transparent 28%),
+    linear-gradient(145deg, rgb(255 255 255 / 4%), transparent 42%), var(--surface);
+  box-shadow: 0 32px 80px rgb(0 0 0 / 18%);
+}
+
+.buildingTop {
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: 2;
+  display: flex;
+  justify-content: space-between;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+}
+
+.buildingGrid {
+  position: absolute;
+  inset: 62px 0 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  opacity: 0.55;
+}
+
+.buildingGrid div {
+  display: flex;
+  align-items: end;
+  padding: 18px;
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+}
+
+.worldEntity {
+  position: absolute;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  max-width: 150px;
+  padding: 9px 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: rgb(10 14 24 / 88%);
+  color: var(--foreground);
+  font: inherit;
+  font-size: 0.78rem;
+  cursor: pointer;
+  backdrop-filter: blur(12px);
+  transform: translate(-50%, -50%);
+  transition:
+    transform 160ms ease,
+    border-color 160ms ease,
+    background 160ms ease;
+}
+
+.worldEntity:hover,
+.worldEntity:focus-visible {
+  border-color: currentColor;
+  transform: translate(-50%, -50%) scale(1.04);
+}
+
+.worldEntity:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 3px;
+}
+
+.worldEntity.isSelected {
+  border-color: currentColor;
+  background: rgb(30 39 65 / 96%);
+}
+
+.worldEntityMarker {
+  width: 8px;
+  height: 8px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 18px currentColor;
+}
+
+.worldEntity--security {
+  color: #ff8f8f;
+}
+
+.worldEntity--compute,
+.worldEntity--data {
+  color: #8fb7ff;
+}
+
+.worldEntity--network {
+  color: #8fffd1;
+}
+
+.worldEntity--cloud {
+  color: #d4a6ff;
+}
+
+.worldEntity--physical-security {
+  color: #ffd68f;
+}
+
+.entityInspector {
+  min-height: 560px;
+  padding: 28px;
+  border: 1px solid var(--border);
+  border-radius: 28px;
+  background: var(--surface);
+}
+
+.inspectorType {
+  margin-bottom: 12px;
+  color: var(--muted);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.entityInspector h3 {
+  margin: 0 0 14px;
+  font-size: 1.7rem;
+  letter-spacing: -0.035em;
+}
+
+.entityInspector > p,
+.inspectorEmpty > p:last-child {
+  color: var(--muted);
+  line-height: 1.65;
+}
+
+.relationshipSection {
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
+}
+
+.relationshipSection h4 {
+  margin: 0 0 14px;
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.relationshipSection ul {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.relationshipSection li {
+  padding: 11px 12px;
+  border-radius: 12px;
+  background: rgb(255 255 255 / 4%);
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.clearSelection {
+  margin-top: 28px;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--foreground);
+  font: inherit;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.clearSelection:hover,
+.clearSelection:focus-visible {
+  border-color: currentColor;
+}
+
+.inspectorEmpty {
+  display: flex;
+  min-height: 440px;
+  flex-direction: column;
+  justify-content: center;
+}
+
+@media (max-width: 860px) {
+  .companyExperienceHeader {
+    display: block;
+  }
+
+  .companyHint {
+    max-width: none;
+    margin-top: 18px;
+  }
+
+  .companyWorkspace {
+    grid-template-columns: 1fr;
+  }
+
+  .companyBuilding {
+    min-height: 500px;
+  }
+
+  .entityInspector {
+    min-height: auto;
+  }
+
+  .inspectorEmpty {
+    min-height: 180px;
+  }
+}
+
+@media (max-width: 560px) {
+  .companyExperience {
+    width: min(100% - 20px, 1180px);
+    margin-bottom: 64px;
+  }
+
+  .companyBuilding {
+    min-height: 600px;
+    border-radius: 20px;
+  }
+
+  .buildingGrid {
+    grid-template-columns: 1fr;
+    grid-template-rows: repeat(4, 1fr);
+  }
+
+  .worldEntity {
+    max-width: 125px;
+    padding: 8px 9px;
+    font-size: 0.68rem;
+  }
+
+  .entityInspector {
+    padding: 22px;
+    border-radius: 20px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .worldEntity {
+    transition: none;
+  }
+}

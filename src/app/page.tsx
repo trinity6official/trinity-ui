@@ -1,6 +1,7 @@
 import Link from 'next/link';
 
 import { IntentPrompt } from '@/components/intent-prompt';
+import { CompanyBuilding } from '@/features/company-world';
 
 const principles = [
   ['Explore', 'Understand meaningful systems, objects, and relationships visually.'],
@@ -43,6 +44,7 @@ export default function Home() {
           </div>
         </div>
       </section>
+      <CompanyBuilding />
     </main>
   );
 }
