@@ -58,4 +58,15 @@ describe('CompanyBuilding', () => {
 
     expect(screen.getByRole('button', { name: 'How a company gets hacked' })).toBeInTheDocument();
   });
+
+  it('starts the guided experience through the Trinity command boundary', () => {
+    render(<CompanyBuilding />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'How a company gets hacked' }));
+
+    expect(screen.getByText('Step 1 of 6')).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: '1. It often starts with a person' }),
+    ).toBeInTheDocument();
+  });
 });

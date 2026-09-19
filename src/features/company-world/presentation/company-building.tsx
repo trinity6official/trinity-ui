@@ -2,6 +2,7 @@
 
 import { useMemo, useReducer } from 'react';
 
+import { executeTrinityCommand } from '@/features/trinity';
 import {
   createWorldState,
   reduceWorldState,
@@ -52,6 +53,17 @@ function isEntityInStep(entityId: string, step: ExperienceStep | null): boolean 
 
 export function CompanyBuilding() {
   const [state, dispatch] = useReducer(reduceWorldState, companyScene, createWorldState);
+
+  function executeCommand(input: unknown): boolean {
+    const result = executeTrinityCommand(input);
+
+    if (!result.success) {
+      return false;
+    }
+
+    dispatch(result.action);
+    return true;
+  }
 
   const selectedEntity = useMemo(
     () =>
@@ -112,7 +124,7 @@ export function CompanyBuilding() {
             type="button"
             className="startExperience"
             onClick={() =>
-              dispatch({
+              executeCommand({
                 type: 'start-experience',
                 experienceId: 'company-attack-path',
               })
