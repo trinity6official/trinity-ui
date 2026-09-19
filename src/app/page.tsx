@@ -1,3 +1,5 @@
+import Link from 'next/link';
+
 import { IntentPrompt } from '@/components/intent-prompt';
 
 const principles = [
@@ -10,9 +12,9 @@ export default function Home() {
   return (
     <main className="shell">
       <header className="siteHeader">
-        <a className="brand" href="/" aria-label="Trinity6 home">
+        <Link className="brand" href="/" aria-label="Trinity6 home">
           TRINITY6
-        </a>
+        </Link>
         <span className="phase">Foundation</span>
       </header>
       <section className="hero" aria-labelledby="hero-title">
