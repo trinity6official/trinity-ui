@@ -95,4 +95,39 @@ describe('world state', () => {
     expect(completed.activeExperienceId).toBeNull();
     expect(completed.activeExperienceStepIndex).toBeNull();
   });
+
+  it('moves to the previous experience step without crossing the first step', () => {
+    const started = reduceWorldState(createWorldState(scene), {
+      type: 'start-experience',
+      experienceId: 'walkthrough',
+    });
+
+    const advanced = reduceWorldState(started, {
+      type: 'advance-experience',
+    });
+
+    expect(advanced.activeExperienceStepIndex).toBe(1);
+
+    const previous = reduceWorldState(advanced, {
+      type: 'previous-experience-step',
+    });
+
+    expect(previous.activeExperienceStepIndex).toBe(0);
+
+    const stillFirst = reduceWorldState(previous, {
+      type: 'previous-experience-step',
+    });
+
+    expect(stillFirst).toBe(previous);
+  });
+
+  it('ignores previous-step navigation when no experience is active', () => {
+    const state = createWorldState(scene);
+
+    expect(
+      reduceWorldState(state, {
+        type: 'previous-experience-step',
+      }),
+    ).toBe(state);
+  });
 });

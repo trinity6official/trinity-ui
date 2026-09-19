@@ -16,6 +16,7 @@ export type WorldAction =
   | { readonly type: 'activate-view'; readonly viewId: WorldId | null }
   | { readonly type: 'start-experience'; readonly experienceId: WorldId }
   | { readonly type: 'advance-experience' }
+  | { readonly type: 'previous-experience-step' }
   | { readonly type: 'stop-experience' };
 
 export function createWorldState(scene: WorldScene): WorldState {
@@ -115,6 +116,20 @@ export function reduceWorldState(state: WorldState, action: WorldAction): WorldS
         activeExperienceStepIndex: nextIndex,
       };
     }
+
+    case 'previous-experience-step':
+      if (
+        state.activeExperienceId === null ||
+        state.activeExperienceStepIndex === null ||
+        state.activeExperienceStepIndex <= 0
+      ) {
+        return state;
+      }
+
+      return {
+        ...state,
+        activeExperienceStepIndex: state.activeExperienceStepIndex - 1,
+      };
 
     case 'stop-experience':
       return {

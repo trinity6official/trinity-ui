@@ -5,6 +5,7 @@ import { useMemo, useReducer } from 'react';
 import {
   createWorldState,
   reduceWorldState,
+  type ExperienceStep,
   type WorldEntity,
   type WorldRelationship,
 } from '@/features/world';
@@ -47,6 +48,10 @@ function relationshipText(relationship: WorldRelationship, selectedEntity: World
   return `${otherEntity.label} → ${relationship.label ?? relationship.type}`;
 }
 
+function isEntityInStep(entityId: string, step: ExperienceStep | null): boolean {
+  return step?.entityIds?.includes(entityId) ?? false;
+}
+
 export function CompanyBuilding() {
   const [state, dispatch] = useReducer(reduceWorldState, companyScene, createWorldState);
 
@@ -70,20 +75,115 @@ export function CompanyBuilding() {
     );
   }, [selectedEntity]);
 
+  const activeExperience = useMemo(
+    () =>
+      state.activeExperienceId
+        ? (companyScene.experiences.find(
+            (experience) => experience.id === state.activeExperienceId,
+          ) ?? null)
+        : null,
+    [state.activeExperienceId],
+  );
+
+  const activeStep =
+    activeExperience !== null && state.activeExperienceStepIndex !== null
+      ? (activeExperience.steps[state.activeExperienceStepIndex] ?? null)
+      : null;
+
+  const activeStepNumber =
+    activeStep !== null && state.activeExperienceStepIndex !== null
+      ? state.activeExperienceStepIndex + 1
+      : null;
+
+  const isLastStep =
+    activeExperience !== null &&
+    state.activeExperienceStepIndex !== null &&
+    state.activeExperienceStepIndex === activeExperience.steps.length - 1;
+
   return (
     <section className="companyExperience" aria-labelledby="company-world-title">
       <div className="companyExperienceHeader">
         <div>
           <p className="eyebrow">World 01 · Company</p>
           <h2 id="company-world-title">Explore how a digital company works.</h2>
-          <p>
-            Select a system to understand what it does and how it connects to the rest of the
-            environment.
-          </p>
+          <p>Inspect individual systems or follow a guided experience through the environment.</p>
         </div>
 
-        <p className="companyHint">Tap or use Tab + Enter to inspect an object.</p>
+        {!activeExperience ? (
+          <button
+            type="button"
+            className="startExperience"
+            onClick={() =>
+              dispatch({
+                type: 'start-experience',
+                experienceId: 'company-attack-path',
+              })
+            }
+          >
+            How a company gets hacked
+          </button>
+        ) : (
+          <p className="companyHint">Guided experience active</p>
+        )}
       </div>
+
+      {activeExperience && activeStep && activeStepNumber !== null ? (
+        <div className="experienceGuide" aria-live="polite">
+          <div className="experienceProgress">
+            <span>
+              Step {activeStepNumber} of {activeExperience.steps.length}
+            </span>
+            <progress value={activeStepNumber} max={activeExperience.steps.length}>
+              {activeStepNumber} of {activeExperience.steps.length}
+            </progress>
+          </div>
+
+          <div className="experienceNarrative">
+            <div>
+              <p className="inspectorType">Guided experience</p>
+              <h3>{activeStep.title}</h3>
+              <p>{activeStep.description}</p>
+            </div>
+
+            <div className="experienceActions">
+              <button
+                type="button"
+                disabled={state.activeExperienceStepIndex === 0}
+                onClick={() =>
+                  dispatch({
+                    type: 'previous-experience-step',
+                  })
+                }
+              >
+                Previous
+              </button>
+
+              <button
+                type="button"
+                onClick={() =>
+                  dispatch({
+                    type: isLastStep ? 'stop-experience' : 'advance-experience',
+                  })
+                }
+              >
+                {isLastStep ? 'Finish' : 'Next'}
+              </button>
+
+              <button
+                type="button"
+                className="experienceExit"
+                onClick={() =>
+                  dispatch({
+                    type: 'stop-experience',
+                  })
+                }
+              >
+                Exit
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       <div className="companyWorkspace">
         <div className="companyBuilding" role="group" aria-label="Interactive company environment">
@@ -107,12 +207,21 @@ export function CompanyBuilding() {
             }
 
             const selected = entity.id === state.selectedEntityId;
+            const highlighted = isEntityInStep(entity.id, activeStep);
 
             return (
               <button
                 key={entity.id}
                 type="button"
-                className={`worldEntity worldEntity--${entity.type}${selected ? ' isSelected' : ''}`}
+                className={[
+                  'worldEntity',
+                  `worldEntity--${entity.type}`,
+                  selected ? 'isSelected' : '',
+                  highlighted ? 'isHighlighted' : '',
+                  activeStep && !highlighted ? 'isDeemphasized' : '',
+                ]
+                  .filter(Boolean)
+                  .join(' ')}
                 style={position}
                 aria-pressed={selected}
                 onClick={() =>
@@ -167,11 +276,16 @@ export function CompanyBuilding() {
             </>
           ) : (
             <div className="inspectorEmpty">
-              <p className="inspectorType">Explore</p>
-              <h3>Select something in the company.</h3>
+              <p className="inspectorType">{activeExperience ? 'Guided experience' : 'Explore'}</p>
+              <h3>
+                {activeExperience
+                  ? 'Follow the highlighted systems.'
+                  : 'Select something in the company.'}
+              </h3>
               <p>
-                The environment is built from entities and relationships in the Trinity6 World
-                Engine.
+                {activeExperience
+                  ? 'The environment changes emphasis as you move through each step.'
+                  : 'The environment is built from entities and relationships in the Trinity6 World Engine.'}
               </p>
             </div>
           )}
