@@ -19,6 +19,8 @@ export type WorldAction =
   | { readonly type: 'stop-experience' };
 
 export function createWorldState(scene: WorldScene): WorldState {
+  assertValidWorldScene(scene);
+
   return {
     scene,
     selectedEntityId: null,
