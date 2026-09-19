@@ -84,14 +84,15 @@ export function CompanyWorldView() {
     mount.appendChild(renderer.domElement);
 
     const world = createCompanyWorldScene(width, height);
+    const selectableObjects = [...world.selectableObjects];
 
     const pointer = new THREE.Vector2();
     const raycaster = new THREE.Raycaster();
 
     let animationFrame = 0;
     let progress = 0;
-    let currentPosition = world.overviewPosition.clone();
-    let currentTarget = world.overviewTarget.clone();
+    const currentPosition = world.overviewPosition.clone();
+    const currentTarget = world.overviewTarget.clone();
 
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -119,7 +120,7 @@ export function CompanyWorldView() {
 
       raycaster.setFromCamera(pointer, world.camera);
 
-      const hit = raycaster.intersectObjects(world.selectableObjects, true)[0];
+      const hit = raycaster.intersectObjects(selectableObjects, true)[0];
 
       return hit ? resolveTarget(hit.object) : null;
     }
@@ -171,8 +172,14 @@ export function CompanyWorldView() {
     }
 
     function handleResize() {
-      const nextWidth = mount.clientWidth;
-      const nextHeight = mount.clientHeight;
+      const currentMount = mountRef.current;
+
+      if (!currentMount) {
+        return;
+      }
+
+      const nextWidth = currentMount.clientWidth;
+      const nextHeight = currentMount.clientHeight;
 
       world.camera.aspect = nextWidth / Math.max(nextHeight, 1);
       world.camera.updateProjectionMatrix();
