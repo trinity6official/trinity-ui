@@ -35,3 +35,6 @@ test-results/
 *.db
 *.sqlite
 *.sqlite3
+
+# TypeScript incremental build state
+*.tsbuildinfo

@@ -7,6 +7,7 @@ This roadmap is directional. Advancement between phases depends on evidence from
 **Goal:** establish a production-quality repository before feature growth.
 
 Deliverables:
+
 - product, architecture, contribution, and agent-development guardrails;
 - Next.js + React + strict TypeScript application scaffold;
 - formatting, linting, type checking, tests, build verification;
@@ -21,6 +22,7 @@ Exit criteria: a minimal application deploys cleanly and all quality gates run a
 **Goal:** prove a renderer-independent model for interactive environments.
 
 Deliverables:
+
 - typed Scene, Entity, Relationship, Hotspot, View, and Experience contracts;
 - content registry separated from rendering;
 - selection/focus/navigation state;
@@ -35,6 +37,7 @@ Exit criteria: the same world model can be consumed without embedding domain log
 **Goal:** ship one polished, useful environment.
 
 Deliverables:
+
 - exterior/entry experience;
 - office and employee workstation;
 - networking/Wi-Fi/firewall;
@@ -52,6 +55,7 @@ Exit criteria: users can understand and navigate the building without instructio
 **Goal:** validate that interaction teaches better than static marketing content.
 
 Initial candidates:
+
 - How a company gets hacked — and how to protect it;
 - How a company network works;
 - How phishing becomes an incident;
