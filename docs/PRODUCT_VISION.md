@@ -9,18 +9,23 @@ The experience follows five verbs:
 **Explore → Learn → Build → Create → Run**
 
 ### Explore
+
 Navigate meaningful systems and relationships visually: people, devices, networks, servers, cloud services, applications, databases, controls, and business processes.
 
 ### Learn
+
 Use interactive explanations, guided scenarios, simulations, challenges, and lessons. Initial domains are cybersecurity, networking, cloud, AI, software, data, privacy, GRC, and IT infrastructure.
 
 ### Build
+
 Help users turn goals into real projects. A future user may start an AI business, app, creator workflow, or other digital project and progress through validation, product, brand, launch, marketing, sales, and operations.
 
 ### Create
+
 Allow educators and creators to author interactive experiences without programming. Creator experiences should be publishable, shareable, embeddable, and eventually monetizable.
 
 ### Run
+
 For serious users and organizations, Trinity can evolve from guidance into an operational assistant using explicit permissions, integrations, workflows, analytics, and automation.
 
 ## Initial audience

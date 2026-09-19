@@ -8,6 +8,8 @@ describe('IntentPrompt', () => {
     const input = screen.getByLabelText('What do you want to do?');
     fireEvent.change(input, { target: { value: 'Show me how ransomware works' } });
     fireEvent.click(screen.getByRole('button', { name: 'Continue' }));
-    expect(screen.getByText(/interactive world and Trinity connection arrive in later phases/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/interactive world and Trinity connection arrive in later phases/i),
+    ).toBeInTheDocument();
   });
 });
