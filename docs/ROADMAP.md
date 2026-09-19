@@ -1,60 +1,233 @@
 # Trinity UI Roadmap
 
-This roadmap is directional. Advancement between phases depends on evidence from the previous phase, not calendar pressure.
+This roadmap is directional. Progress between milestones depends on evidence and product quality rather than calendar pressure.
 
-## Phase 0 — Engineering foundation
+## Completed — Engineering foundation
 
-**Goal:** establish a production-quality repository before feature growth.
+Established:
 
-Deliverables:
-
-- product, architecture, contribution, and agent-development guardrails;
-- Next.js + React + strict TypeScript application scaffold;
+- production Next.js / React / strict TypeScript baseline;
 - formatting, linting, type checking, tests, build verification;
 - CI and repository hygiene/security checks;
-- base design tokens and accessibility conventions;
-- ADR process and dependency boundaries.
+- dependency and architecture guardrails;
+- ADR process;
+- accessibility conventions.
 
-Exit criteria: a minimal application deploys cleanly and all quality gates run automatically.
+## Completed — World Engine v1
 
-## Phase 1 — World engine v1
+Delivered:
 
-**Goal:** prove a renderer-independent model for interactive environments.
-
-Deliverables:
-
-- typed Scene, Entity, Relationship, Hotspot, View, and Experience contracts;
-- content registry separated from rendering;
-- selection/focus/navigation state;
-- renderer adapter boundary;
-- accessible non-visual representation of entities and actions;
+- renderer-independent Scene, Entity, Relationship, Hotspot, View, and Experience contracts;
+- validated structured world content;
+- world interaction state;
+- selection/focus/view state;
+- guided-experience state transitions;
 - fixture-driven tests.
 
-Exit criteria: the same world model can be consumed without embedding domain logic in React/renderer code.
+The World Engine remains independent from React, Three.js, WebGL, and domain-specific content.
 
-## Phase 2 — Company building v1
+## Completed — Company content v1
 
-**Goal:** ship one polished, useful environment.
+Delivered an initial company graph including:
 
-Deliverables:
+- employee;
+- laptop;
+- Wi-Fi;
+- firewall;
+- application server;
+- database;
+- cloud service;
+- CCTV;
+- physical access;
+- relationships between those entities.
 
-- exterior/entry experience;
-- office and employee workstation;
-- networking/Wi-Fi/firewall;
-- server room and database;
-- cloud/application connections;
-- CCTV/physical access;
-- responsive desktop/mobile interaction;
-- information panel and relationship exploration;
-- performance budgets and reduced-motion fallback.
+This content remains useful underneath the new 3D presentation.
 
-Exit criteria: users can understand and navigate the building without instructions.
+## Completed — Guided Experience v1
 
-## Phase 3 — First guided experiences
+Delivered:
 
-**Goal:** validate that interaction teaches better than static marketing content.
+- first guided experience:
+  **How a company gets hacked — and how to protect it**;
+- step progression;
+- previous/next/finish/exit behavior;
+- entity and relationship emphasis.
 
-Initial candidates:
+## Completed — Relationship Visualization v1
+
+Delivered renderer-side visualization of active relationships without leaking domain content into the World Engine.
+
+## Completed — Trinity Command Protocol v1
+
+Delivered a typed intelligence-facing command contract including:
+
+- select entity;
+- focus entity;
+- activate view;
+- start experience;
+- advance/previous experience;
+- stop experience.
+
+Unknown external input is validated before translation into `WorldAction`.
+
+## Completed — Trinity Integration v1
+
+Delivered the first path:
+
+```text
+unknown Trinity input
+        ↓
+parseTrinityCommand
+        ↓
+TrinityCommand
+        ↓
+interpretTrinityCommand
+        ↓
+WorldAction
+        ↓
+World Engine
+```
+
+No model/provider dependency is required yet.
+
+---
+
+# Current milestone — Visual World Renderer v1
+
+## Goal
+
+Turn the existing world model into a genuine spatial company environment.
+
+The first screen should show the **entire company**, not an isolated entrance.
+
+The visual target is a premium interactive architectural digital twin with mobile-first usability.
+
+## Renderer direction
+
+Selected:
+
+- Three.js runtime;
+- WebGL rendering;
+- raycast interaction;
+- semantic object IDs;
+- camera navigation;
+- `.glb/.gltf` production assets;
+- renderer-specific spatial metadata outside the generic World Engine.
+
+React Three Fiber is not currently used because the tested current release has a React peer range that excludes the repository's React 19.3 version.
+
+The repository will not force or hide that dependency conflict.
+
+## Visual World Renderer v1A — Interaction prototype
+
+Status: **in progress**
+
+Deliver:
+
+- full multi-floor company view;
+- zoomed-out mobile and desktop camera;
+- touch/raycast selection;
+- recognizable office, network, server, security, and entrance areas;
+- physical access card;
+- entrance/reader interaction;
+- door opening;
+- camera transition from overview → entrance → lobby;
+- accessible DOM controls/fallback.
+
+The current procedural Three.js building exists to prove behavior and architecture, not final art quality.
+
+## Visual World Renderer v1B — Asset pipeline
+
+Next.
+
+Deliver:
+
+- Blender source directory and conventions;
+- deterministic export script;
+- `.glb` output directory;
+- GLTFLoader integration;
+- semantic object naming conventions;
+- PBR material conventions;
+- texture/asset budgets;
+- LOD / progressive loading strategy;
+- mobile GPU/performance budgets;
+- environment/lighting strategy.
+
+## Visual World Renderer v1C — Reference-quality company asset
+
+Deliver one production-quality company model with:
+
+- complete exterior;
+- cutaway floors;
+- lobby;
+- office workspace;
+- network room;
+- server room;
+- security area;
+- rooftop/landscaping;
+- furniture and infrastructure;
+- named interactive objects;
+- production lighting/materials.
+
+Exit criterion:
+
+The full company view is visually compelling without relying on a static generated image.
+
+## Visual World Renderer v1D — Spatial drill-down
+
+Deliver:
+
+```text
+Company
+  → Entrance
+  → Lobby
+  → Floor
+  → Room
+  → Rack
+  → Device
+```
+
+Camera navigation must preserve a clear back path.
+
+## Visual World Renderer v1E — Digital twin overlays
+
+Deliver:
+
+- physical network/data paths;
+- restrained cyan digital overlays;
+- relationship highlighting;
+- system status indicators;
+- Trinity-driven focus/highlight commands.
+
+The digital overlay sits on top of believable architecture.
+
+---
+
+## Next — Trinity AI integration
+
+Connect `trinity-ui` to `trinity-ai` through a versioned service boundary.
+
+Initial intelligence operations should map to the existing typed command protocol.
+
+Example:
+
+```text
+"Show me the server room"
+      ↓
+Trinity AI
+      ↓
+focus entity / activate view
+      ↓
+camera navigates to server room
+```
+
+Provider-specific details remain behind a `TrinityService`.
+
+## Richer guided experiences
+
+Expand only after the renderer is strong enough to support them spatially.
+
+Candidates:
 
 - How a company gets hacked — and how to protect it;
 - How a company network works;
@@ -62,60 +235,64 @@ Initial candidates:
 - Follow data from user to database;
 - Protect a server.
 
-Deliverables include deep-linkable/shareable experience URLs, progress, restart/replay, and basic anonymous usage analytics.
+## Identity and persistence
 
-Exit criteria: measurable completion, repeat interaction, and sharing signals justify continued investment.
+Introduce a dedicated platform backend when requirements are concrete.
 
-## Phase 4 — Trinity interaction
+Likely responsibilities:
 
-**Goal:** make natural language manipulate/explain the world.
+- accounts;
+- profiles;
+- saved progress;
+- projects;
+- permissions;
+- content metadata;
+- membership state;
+- quotas;
+- analytics events.
 
-Start with a constrained typed command protocol: focus entity, highlight relationship, start experience, explain entity, compare states. Keep provider-specific AI details behind `TrinityService`.
+Do not turn `trinity-ai` into the platform backend.
 
-Later integrate with `trinity-ai` through a versioned API contract.
+## Build workspace
 
-Exit criteria: Trinity materially improves discovery/comprehension rather than acting as generic chat.
+Help users move from an idea to execution.
 
-## Phase 5 — Identity and persistence
+Validate one high-value journey before adding many.
 
-**Goal:** support returning users.
+## Creator Studio
 
-Introduce the dedicated platform backend when requirements are concrete. Likely capabilities: accounts, profiles, saved progress, projects, permissions, content metadata, quotas, membership state, and analytics events.
+Allow creators and educators to build interactive experiences without code.
 
-This is the likely point to create `trinity-backend`; do not turn `trinity-ai` into the platform backend.
+## Membership / professional features
 
-## Phase 6 — Build workspace
+Potential value:
 
-**Goal:** help users move from AI/business ideas to execution.
+- higher AI limits;
+- multiple/private projects;
+- premium assets/templates;
+- advanced analytics;
+- collaboration;
+- integrations;
+- automation;
+- professional branding.
 
-Potential flows: start an AI business, launch an app/SaaS, creator journey, digital product, AI agency. Model milestones and evidence instead of arbitrary gamification. Trinity helps research, plan, create artifacts, and track next actions.
+## Marketplace
 
-Validate one journey before adding many.
+Only after creator supply and user demand are healthy.
 
-## Phase 7 — Creator Studio
+## My Organization
 
-**Goal:** let creators/educators build experiences without code.
+Long-term organizational digital twin using authorized real infrastructure data.
 
-Capabilities may include templates, object placement, relationships, steps/narration, quizzes/challenges, preview, publishing, share/embed, creator profiles, and analytics.
+This requires mature:
 
-Free creation should be useful enough to create distribution. Paid capability should target professional usage.
-
-## Phase 8 — Membership and professional features
-
-Potential value: higher AI/creation limits, multiple/private projects, premium templates/assets, advanced analytics, collaboration, integrations, automation, and professional branding.
-
-Pricing follows measured willingness to pay and infrastructure cost.
-
-## Phase 9 — Marketplace
-
-Only after healthy creator supply and consumer demand: discoverable templates, lessons, simulations, labs, and paid experiences; creator monetization and platform economics.
-
-## Phase 10 — My Organization
-
-**Long-term:** connect authorized real-world systems and visualize an organization using actual asset/integration data. Possible layers include security, compliance, privacy, identity, operations, dependencies, and business impact.
-
-This phase requires mature backend, tenancy, authorization, auditability, data governance, and security architecture.
+- tenancy;
+- authorization;
+- auditability;
+- backend architecture;
+- governance;
+- security controls.
 
 ## Expansion rule
 
-The engine may support arbitrary worlds, but public product scope expands only when user/creator demand validates a new domain.
+The engine may technically support many worlds, but product scope expands only when user demand validates the next domain.

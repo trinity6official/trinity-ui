@@ -4,88 +4,342 @@
 
 ```text
 trinity-ui
-  Web / visual world / interaction / creator and project UX
+  visual world / interaction / creator and project UX
        |
        | versioned APIs
        v
 future trinity-backend
-  accounts / persistence / authorization / memberships / content metadata /
-  billing / platform business logic / analytics
+  accounts / persistence / authorization / memberships /
+  content metadata / billing / platform business logic / analytics
        |
        +------> trinity-ai
                  models / routing / memory / agents / skills / AI execution
 ```
 
-The backend is intentionally deferred until persistence/business requirements justify the operational boundary.
+The platform backend remains intentionally deferred until persistence and business requirements justify it.
 
 ## Client architecture target
 
 ```text
 src/
-  app/                 routing and composition
-  components/          reusable presentation primitives
+  app/
+  components/
   features/
     world/
-      domain/           renderer-independent models/rules
-      application/      use cases/state transitions
-      infrastructure/   adapters/loaders
-      presentation/     React/UI integration
+      domain/
+      application/
+      infrastructure/
+      presentation/
     trinity/
       domain/
       application/
       infrastructure/
       presentation/
+    company-world/
+      content/
+      presentation/
+        three/
     experiences/
-  services/             typed external boundaries
+  services/
   config/
   lib/
   styles/
   types/
 ```
 
-Directories are introduced when implementation requires them; do not create empty architecture theater.
+Directories are introduced only when implementation requires them.
+
+## Core dependency direction
+
+```text
+Trinity / external intelligence
+          ↓
+     TrinityCommand
+          ↓
+  command interpreter
+          ↓
+       WorldAction
+          ↓
+      World Engine
+          ↓
+   renderer adapter
+          ↓
+     Three.js scene
+```
+
+The dependency direction must not reverse.
+
+In particular:
+
+- the World Engine must not import Three.js;
+- the World Engine must not contain 3D coordinates or renderer materials;
+- Trinity commands must not directly manipulate Three.js objects;
+- the renderer maps semantic world IDs to spatial objects.
 
 ## World model
 
-The world is a graph, not a pile of clickable coordinates.
+The world is a graph, not a collection of clickable screen coordinates.
 
-- **Scene:** bounded environment/view.
-- **Entity:** meaningful object/person/system.
-- **Relationship:** typed connection between entities.
-- **Hotspot:** optional interaction affordance associated with an entity or region.
-- **Experience:** ordered/branching instructional or simulation flow operating on the world.
-- **Domain layer:** cybersecurity, networking, privacy, AI, etc. Domain knowledge enriches entities but does not own rendering.
+Core concepts:
 
-A renderer consumes world state. It must not become the source of truth.
+- **Scene** — bounded environment/view;
+- **Entity** — meaningful object, person, or system;
+- **Relationship** — typed connection;
+- **Hotspot** — optional interaction affordance;
+- **View** — meaningful presentation/navigation state;
+- **Experience** — ordered or branching instructional/simulation flow.
 
-## Rendering
+Runtime interaction state remains separate from the immutable domain content.
 
-Do not prematurely commit the platform to heavy 3D. Phase 1 should allow 2D/isometric, DOM/SVG/canvas, or later WebGL renderers behind an adapter. Choose the rendering technology based on the building prototype, mobile performance, accessibility, asset pipeline, and creator requirements.
+## Rendering decision
+
+The renderer decision has evolved based on prototype evidence.
+
+The earlier DOM/SVG visualization successfully validated world state, relationship rendering, and guided experiences, but it did not support the intended spatial experience.
+
+The production direction is now:
+
+- Three.js as the browser 3D runtime;
+- WebGL rendering;
+- raycasting for pointer/touch interaction;
+- camera navigation;
+- standard `.glb/.gltf` scene assets;
+- semantic object naming and mapping;
+- DOM accessibility layer around the canvas.
+
+React Three Fiber is not currently part of the stack because the tested current release declares a React peer range that excludes React 19.3.
+
+We do not use `--force` or `--legacy-peer-deps` to hide that incompatibility.
+
+## Runtime vs authoring
+
+Three.js is not the production modeling tool.
+
+Responsibilities:
+
+```text
+Blender / asset authoring
+        ↓
+GLB / GLTF
+        ↓
+asset loader / semantic mapping
+        ↓
+Three.js runtime
+        ↓
+camera / interaction / animation / overlays
+        ↓
+World Engine + Trinity
+```
+
+Procedural Three.js geometry is appropriate for:
+
+- renderer prototypes;
+- debug geometry;
+- interaction tests;
+- simple generated primitives;
+- fallback visualization.
+
+Production architecture, furniture, infrastructure, and detailed props should use authored assets.
+
+## Scene asset boundary
+
+Renderer-specific spatial metadata must remain outside the generic World Engine.
+
+A semantic entity can map to one or more render objects.
+
+Example:
+
+```text
+World entity:
+  server-042
+
+Renderer objects:
+  Floor02/ServerRoom/Rack03/Server042
+  Floor02/CableTray/Cable_Server042
+  Floor02/Indicator/Server042
+```
+
+The semantic ID is stable even if the visual asset changes.
+
+## Object naming conventions
+
+Production GLB objects should use stable, readable names.
+
+Example:
+
+```text
+TrinityCompany
+  Exterior
+  Floor_01
+    Lobby
+    EntranceDoor_Left
+    EntranceDoor_Right
+    CardReader
+  Floor_02
+    ServerRoom
+      Rack_01
+        Server_01
+        Server_02
+  Floor_03
+    Office
+  Floor_04
+    NetworkRoom
+      Switch_01
+      Firewall_01
+```
+
+Do not rely on Blender-generated anonymous names as application contracts.
+
+## Camera/navigation
+
+Navigation is hierarchical:
+
+```text
+Company
+  ↓
+Floor
+  ↓
+Room
+  ↓
+Rack / equipment
+  ↓
+Device
+```
+
+Every drill-down must have an obvious reverse path.
+
+Desktop and mobile may use different camera presets.
+
+Mobile must not simply shrink the desktop composition.
+
+## Input model
+
+Desktop:
+
+- hover for discovery;
+- click to select/activate;
+- keyboard equivalents.
+
+Mobile:
+
+- tap to select;
+- tap/explicit action to activate;
+- large hit areas;
+- no interaction that depends only on hover.
+
+## Secure entrance interaction
+
+The initial entry flow is:
+
+```text
+Company overview
+      ↓
+Select access card
+      ↓
+Touch card reader / entrance
+      ↓
+Verification
+      ↓
+Reader state changes
+      ↓
+Doors open
+      ↓
+Camera enters lobby
+```
+
+The access-card UI button remains an accessible assisted path, not the only way to interact.
+
+## Digital twin overlays
+
+Digital overlays must be layered onto believable architecture.
+
+Examples:
+
+- physical cable path;
+- active network path;
+- data flow;
+- security boundary;
+- selected entity;
+- compliance/risk state.
+
+Avoid turning the environment into a neon network graph.
 
 ## Service boundaries
 
-UI code consumes interfaces such as `TrinityService`, `ExperienceRepository`, and future `ProjectService`. Early implementations may use static/local data. Remote implementations can later replace them without rewriting presentation code.
+Presentation code should consume explicit service interfaces such as:
+
+- `TrinityService`;
+- future `ExperienceRepository`;
+- future `ProjectService`;
+- future asset/scene registry abstractions where useful.
+
+Remote implementation details must not spread across React components.
 
 ## State
 
-Separate durable server state, URL/shareable state, world interaction state, and ephemeral UI state. Do not place everything in a global store.
+Keep separate:
+
+- durable server state;
+- URL/shareable state;
+- semantic world state;
+- renderer navigation/camera state;
+- ephemeral UI state.
+
+Do not put all state into a single global store.
 
 ## Content
 
-Educational/domain content must be structured, versionable, and render-independent. Treat future creator content as untrusted.
+Educational/domain content remains structured, versionable, and render-independent.
+
+Future creator content is untrusted and must be validated at boundaries.
 
 ## Performance
 
-Interactive visuals must have explicit performance budgets. Prefer progressive loading, optimized assets, code splitting, and graceful fallback. Mobile is a first-class client.
+3D introduces explicit budgets.
+
+Requirements include:
+
+- progressive loading;
+- compressed assets where appropriate;
+- texture-size budgets;
+- limited draw calls/material count;
+- capped device pixel ratio;
+- LOD where useful;
+- mobile-first testing;
+- graceful WebGL failure behavior;
+- reduced-motion behavior.
+
+Production asset choices must consider GPU/memory cost, not only visual fidelity.
 
 ## Accessibility
 
-Every important visual entity/action needs a semantic accessible equivalent. Keyboard navigation, focus management, contrast, reduced motion, and screen-reader paths are product requirements.
+Canvas/WebGL is not a semantic UI.
+
+Every important action must have an accessible DOM equivalent.
+
+Requirements include:
+
+- semantic buttons/actions;
+- keyboard navigation;
+- focus management;
+- contrast;
+- reduced motion;
+- screen-reader descriptions;
+- non-WebGL fallback for critical information.
 
 ## Security
 
-No secrets in client code. Validate untrusted content at boundaries. Avoid unsafe HTML execution. Future authentication/authorization is enforced server-side; client checks are UX only.
+- no secrets in client code;
+- validate untrusted content;
+- avoid unsafe HTML execution;
+- future authorization is enforced server-side;
+- client-side access states are presentation only unless backed by server authorization.
 
 ## Decision records
 
-Material decisions go in `docs/decisions/` using lightweight ADRs: context, decision, alternatives, consequences.
+Material decisions live in `docs/decisions/`.
+
+Current renderer decisions:
+
+- ADR 0002 — renderer-independent World Engine;
+- ADR 0003 — Three.js runtime with asset-driven 3D scenes.
