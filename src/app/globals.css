@@ -3,8 +3,10 @@
   --background: #06080d;
   --surface: rgba(17, 22, 31, 0.72);
   --text: #f6f7f9;
+  --foreground: var(--text);
   --muted: #a8b0bd;
   --line: rgba(255, 255, 255, 0.1);
+  --border: var(--line);
   --accent: #e7edf8;
   --max-width: 1200px;
 }
@@ -620,5 +622,39 @@ h1 {
 @media (prefers-reduced-motion: reduce) {
   .worldEntity.isHighlighted {
     transform: translate(-50%, -50%);
+  }
+}
+
+.relationshipMap {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.relationshipLine {
+  stroke: rgba(168, 176, 189, 0.28);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  transition:
+    stroke 160ms ease,
+    stroke-width 160ms ease,
+    opacity 160ms ease;
+}
+
+.relationshipLine.isActive {
+  stroke: var(--foreground);
+  stroke-width: 3;
+}
+
+.relationshipLine.isDeemphasized {
+  opacity: 0.12;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .relationshipLine {
+    transition: none;
   }
 }

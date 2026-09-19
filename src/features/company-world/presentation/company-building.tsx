@@ -11,23 +11,21 @@ import {
 } from '@/features/world';
 
 import { companyScene } from '../content/company-scene';
+import { createRelationshipLines, type EntityPoint } from './relationship-geometry';
 
-interface EntityPosition {
-  readonly left: string;
-  readonly top: string;
-}
-
-const positions: Readonly<Record<string, EntityPosition>> = {
-  employee: { left: '11%', top: '20%' },
-  laptop: { left: '27%', top: '31%' },
-  wifi: { left: '43%', top: '20%' },
-  firewall: { left: '58%', top: '38%' },
-  server: { left: '72%', top: '28%' },
-  database: { left: '81%', top: '59%' },
-  cloud: { left: '70%', top: '7%' },
-  cctv: { left: '15%', top: '65%' },
-  access: { left: '34%', top: '70%' },
+const positions: Readonly<Record<string, EntityPoint>> = {
+  employee: { x: 11, y: 20 },
+  laptop: { x: 27, y: 31 },
+  wifi: { x: 43, y: 20 },
+  firewall: { x: 58, y: 38 },
+  server: { x: 72, y: 28 },
+  database: { x: 81, y: 59 },
+  cloud: { x: 70, y: 7 },
+  cctv: { x: 15, y: 65 },
+  access: { x: 34, y: 70 },
 };
+
+const relationshipLines = createRelationshipLines(companyScene.relationships, positions);
 
 function relationshipText(relationship: WorldRelationship, selectedEntity: WorldEntity): string {
   const otherEntityId =
@@ -199,6 +197,35 @@ export function CompanyBuilding() {
             <div>PHYSICAL SECURITY</div>
           </div>
 
+          <svg
+            className="relationshipMap"
+            viewBox="0 0 100 100"
+            preserveAspectRatio="none"
+            aria-hidden="true"
+          >
+            {relationshipLines.map((relationship) => {
+              const active = activeStep?.relationshipIds?.includes(relationship.id) ?? false;
+
+              return (
+                <line
+                  key={relationship.id}
+                  className={[
+                    'relationshipLine',
+                    active ? 'isActive' : '',
+                    activeStep && !active ? 'isDeemphasized' : '',
+                  ]
+                    .filter(Boolean)
+                    .join(' ')}
+                  x1={relationship.x1}
+                  y1={relationship.y1}
+                  x2={relationship.x2}
+                  y2={relationship.y2}
+                  vectorEffect="non-scaling-stroke"
+                />
+              );
+            })}
+          </svg>
+
           {companyScene.entities.map((entity) => {
             const position = positions[entity.id];
 
@@ -222,7 +249,10 @@ export function CompanyBuilding() {
                 ]
                   .filter(Boolean)
                   .join(' ')}
-                style={position}
+                style={{
+                  left: `${position.x}%`,
+                  top: `${position.y}%`,
+                }}
                 aria-pressed={selected}
                 onClick={() =>
                   dispatch({
