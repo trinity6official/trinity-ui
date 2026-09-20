@@ -299,3 +299,45 @@ A production asset is accepted when it:
 - renders correctly on mobile;
 - does not rely on inaccessible external accounts;
 - can be reproduced/exported from repository-controlled source assets.
+
+## Current production company asset
+
+The production Trinity6 headquarters is repository-owned at:
+
+```text
+public/models/company/trinity-company.glb
+```
+
+Asset provenance and acceptance data:
+
+- 3D Jutsu project: `4e821ba3-60f3-479d-acee-5eb3f8e8a598`
+- accepted revision: `19`
+- world version: `2.0`
+- asset stage: `final`
+- exported GLB size: `1,190,200 bytes`
+- SHA-256: `1fc7f3b0f229ebf3c6324054fd590e2ed094693971b30f169d8d61fed1ba6b54`
+- approximate triangles: `15,080`
+- semantic IDs: `109`
+- interactive objects: `73`
+- camera presets: `9`
+
+The final asset intentionally contains no ambient people, cars, front terraces, or city-backdrop geometry. The city is a separate runtime environment concern.
+
+The accepted exterior direction is a premium night headquarters with warm interior illumination, hero facade/entrance focus lighting, restrained cyan Trinity6 accents, landscaping, reflecting pools, and a clean front facade.
+
+### Runtime contract
+
+The Three.js runtime binds to stable names and semantic IDs exported in GLB extras. The flagship physical cybersecurity path is:
+
+```text
+Laptop_01
+  → WiFi_AP_01
+  → Switch_01
+  → Firewall_01
+  → ApplicationServer_01
+  → Database_01
+```
+
+Corresponding semantic IDs are kept in `company-world-contract.ts`.
+
+The GLB includes the accepted authored lighting cues. Trinity UI remains responsible for renderer exposure, environment lighting, device-specific quality, selection/highlight effects, and future simulation overlays.

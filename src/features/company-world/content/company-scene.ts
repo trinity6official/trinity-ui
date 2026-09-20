@@ -3,7 +3,6 @@ import { assertValidWorldScene, type WorldScene } from '@/features/world';
 export const companyScene = {
   id: 'company-building',
   label: 'Trinity6 Company',
-
   entities: [
     {
       id: 'employee',
@@ -16,30 +15,42 @@ export const companyScene = {
       type: 'device',
       label: 'Employee Laptop',
       description: 'The employee workstation used to access company applications and services.',
+      metadata: { assetSemanticId: 'company.floor_02.office.laptop_01' },
     },
     {
       id: 'wifi',
       type: 'network',
-      label: 'Wi-Fi',
+      label: 'Wi-Fi Access Point',
       description: 'Provides wireless connectivity for devices inside the office.',
+      metadata: { assetSemanticId: 'company.floor_03.network_room.wifi_ap_01' },
+    },
+    {
+      id: 'switch',
+      type: 'network',
+      label: 'Network Switch',
+      description: 'Carries internal network traffic between connected company systems.',
+      metadata: { assetSemanticId: 'company.floor_03.network_room.switch_01' },
     },
     {
       id: 'firewall',
       type: 'security',
       label: 'Firewall',
-      description: 'Controls network traffic between company systems and external networks.',
+      description: 'Controls network traffic between company systems and protected services.',
+      metadata: { assetSemanticId: 'company.floor_03.network_room.firewall_01' },
     },
     {
       id: 'server',
       type: 'compute',
       label: 'Application Server',
       description: 'Runs business applications and communicates with protected internal services.',
+      metadata: { assetSemanticId: 'company.floor_03.server_room.application_server_01' },
     },
     {
       id: 'database',
       type: 'data',
       label: 'Database',
       description: 'Stores information used by company applications.',
+      metadata: { assetSemanticId: 'company.floor_03.server_room.database_01' },
     },
     {
       id: 'cloud',
@@ -52,15 +63,16 @@ export const companyScene = {
       type: 'physical-security',
       label: 'CCTV',
       description: 'Monitors physical areas around the company environment.',
+      metadata: { assetSemanticId: 'company.physical_security.cctv_01' },
     },
     {
       id: 'access',
       type: 'physical-security',
       label: 'Physical Access',
       description: 'Controls entry into protected company areas.',
+      metadata: { assetSemanticId: 'company.entrance.card_reader' },
     },
   ],
-
   relationships: [
     {
       id: 'employee-uses-laptop',
@@ -77,9 +89,16 @@ export const companyScene = {
       label: 'uses',
     },
     {
-      id: 'wifi-routes-firewall',
+      id: 'wifi-routes-switch',
       type: 'routes-through',
       sourceEntityId: 'wifi',
+      targetEntityId: 'switch',
+      label: 'routes through',
+    },
+    {
+      id: 'switch-routes-firewall',
+      type: 'routes-through',
+      sourceEntityId: 'switch',
       targetEntityId: 'firewall',
       label: 'routes through',
     },
@@ -112,14 +131,13 @@ export const companyScene = {
       label: 'monitors',
     },
   ],
-
   hotspots: [
     { id: 'hotspot-laptop', entityId: 'laptop', label: 'Inspect employee laptop' },
+    { id: 'hotspot-switch', entityId: 'switch', label: 'Inspect network switch' },
     { id: 'hotspot-firewall', entityId: 'firewall', label: 'Inspect firewall' },
     { id: 'hotspot-server', entityId: 'server', label: 'Inspect application server' },
     { id: 'hotspot-database', entityId: 'database', label: 'Inspect database' },
   ],
-
   views: [
     {
       id: 'company-overview',
@@ -128,6 +146,7 @@ export const companyScene = {
         'employee',
         'laptop',
         'wifi',
+        'switch',
         'firewall',
         'server',
         'database',
@@ -139,16 +158,15 @@ export const companyScene = {
     {
       id: 'digital-path',
       label: 'Digital path',
-      entityIds: ['employee', 'laptop', 'wifi', 'firewall', 'server', 'database', 'cloud'],
+      entityIds: ['employee', 'laptop', 'wifi', 'switch', 'firewall', 'server', 'database'],
     },
   ],
-
   experiences: [
     {
       id: 'company-attack-path',
       title: 'How a company gets hacked — and how to protect it',
       description:
-        'Follow a simplified attack path through a company environment and see where defensive controls reduce risk.',
+        'Follow a simplified attack path through the Trinity6 headquarters and see where defensive controls reduce risk.',
       steps: [
         {
           id: 'attack-entry',
@@ -168,11 +186,11 @@ export const companyScene = {
         },
         {
           id: 'network-movement',
-          title: '3. The attacker looks for a path inward',
+          title: '3. Traffic moves through the internal network',
           description:
-            'From the compromised endpoint, the attacker may attempt to reach additional systems through available network paths.',
-          entityIds: ['wifi', 'firewall'],
-          relationshipIds: ['wifi-routes-firewall'],
+            'The path from the endpoint crosses the wireless access point and network switch before it reaches the protected boundary.',
+          entityIds: ['wifi', 'switch', 'firewall'],
+          relationshipIds: ['wifi-routes-switch', 'switch-routes-firewall'],
         },
         {
           id: 'defensive-boundary',
@@ -186,7 +204,7 @@ export const companyScene = {
           id: 'application-target',
           title: '5. Applications are valuable targets',
           description:
-            'A reachable or vulnerable application server can expose access to business functions and connected services.',
+            'A reachable or vulnerable application server can expose access to business functions, connected services, and application data.',
           entityIds: ['server', 'database', 'cloud'],
           relationshipIds: ['server-reads-database', 'server-connects-cloud'],
         },
