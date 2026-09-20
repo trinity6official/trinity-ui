@@ -3,27 +3,32 @@
 import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 
-import { createCompanyWorldScene, type CompanySceneTarget } from './company-world-scene';
+import {
+  loadCompanyWorldScene,
+  type CompanySceneTarget,
+  type CompanyWorldRuntime,
+} from './company-world-scene';
 
 type AccessPhase = 'overview' | 'card-selected' | 'entering' | 'inside';
+type AssetState = 'loading' | 'ready' | 'error';
 
 const targetLabels: Readonly<Record<CompanySceneTarget, string>> = {
   'access-card': 'Access card',
   entrance: 'Secure entrance',
   network: 'Network',
-  people: 'People',
+  workspace: 'Workspace',
   'server-room': 'Server Room',
   security: 'Security',
 };
 
 export function CompanyWorldView() {
   const mountRef = useRef<HTMLDivElement>(null);
-
   const phaseRef = useRef<AccessPhase>('overview');
   const focusedRef = useRef<CompanySceneTarget | null>(null);
 
   const [phase, setPhase] = useState<AccessPhase>('overview');
   const [focusedTarget, setFocusedTarget] = useState<CompanySceneTarget | null>(null);
+  const [assetState, setAssetState] = useState<AssetState>('loading');
 
   function updatePhase(nextPhase: AccessPhase) {
     phaseRef.current = nextPhase;
@@ -36,6 +41,8 @@ export function CompanyWorldView() {
   }
 
   function presentCard() {
+    if (assetState !== 'ready') return;
+
     if (phaseRef.current === 'inside') {
       updatePhase('overview');
       updateFocusedTarget(null);
@@ -53,10 +60,7 @@ export function CompanyWorldView() {
 
   useEffect(() => {
     const mount = mountRef.current;
-
-    if (!mount) {
-      return;
-    }
+    if (!mount) return;
 
     const width = mount.clientWidth;
     const height = mount.clientHeight;
@@ -70,6 +74,7 @@ export function CompanyWorldView() {
       });
     } catch {
       mount.dataset.webglUnavailable = 'true';
+      queueMicrotask(() => setAssetState('error'));
       return;
     }
 
@@ -77,180 +82,180 @@ export function CompanyWorldView() {
     renderer.setSize(width, height);
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.08;
-    renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-
+    renderer.toneMappingExposure = 1.18;
+    renderer.shadowMap.enabled = false;
     mount.appendChild(renderer.domElement);
 
-    const world = createCompanyWorldScene(width, height);
-    const selectableObjects = [...world.selectableObjects];
+    let disposed = false;
+    let runtimeCleanup: (() => void) | undefined;
 
-    const pointer = new THREE.Vector2();
-    const raycaster = new THREE.Raycaster();
+    async function startWorld() {
+      let world: CompanyWorldRuntime;
 
-    let animationFrame = 0;
-    let progress = 0;
-    const currentPosition = world.overviewPosition.clone();
-    const currentTarget = world.overviewTarget.clone();
+      try {
+        world = await loadCompanyWorldScene(width, height);
+      } catch (error) {
+        console.error('Failed to load Trinity6 company world.', error);
+        const currentMount = mountRef.current;
 
-    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-    function resolveTarget(object: THREE.Object3D) {
-      let current: THREE.Object3D | null = object;
-
-      while (current) {
-        const target = current.userData.target as CompanySceneTarget | undefined;
-
-        if (target) {
-          return target;
-        }
-
-        current = current.parent;
-      }
-
-      return null;
-    }
-
-    function pickTarget(event: PointerEvent) {
-      const rect = renderer.domElement.getBoundingClientRect();
-
-      pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-      pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-
-      raycaster.setFromCamera(pointer, world.camera);
-
-      const hit = raycaster.intersectObjects(selectableObjects, true)[0];
-
-      return hit ? resolveTarget(hit.object) : null;
-    }
-
-    function handlePointerMove(event: PointerEvent) {
-      const target = pickTarget(event);
-
-      renderer.domElement.style.cursor = target ? 'pointer' : 'default';
-
-      if (target && target !== 'access-card' && target !== 'entrance') {
-        updateFocusedTarget(target);
-      }
-    }
-
-    function handlePointerLeave() {
-      renderer.domElement.style.cursor = 'default';
-    }
-
-    function handlePointerUp(event: PointerEvent) {
-      const target = pickTarget(event);
-
-      if (!target) {
-        return;
-      }
-
-      if (target === 'access-card') {
-        if (phaseRef.current === 'overview') {
-          updatePhase('card-selected');
+        if (!disposed && currentMount) {
+          currentMount.dataset.assetError = 'true';
+          setAssetState('error');
         }
         return;
       }
 
-      if (target === 'entrance') {
-        if (phaseRef.current === 'overview') {
-          updatePhase('card-selected');
-          updateFocusedTarget('entrance');
+      if (disposed) {
+        world.dispose();
+        return;
+      }
+
+      setAssetState('ready');
+
+      const selectableObjects = [...world.selectableObjects];
+      const pointer = new THREE.Vector2();
+      const raycaster = new THREE.Raycaster();
+
+      let animationFrame = 0;
+      let progress = 0;
+      const currentPosition = world.overviewPosition.clone();
+      const currentTarget = world.overviewTarget.clone();
+      const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      function resolveTarget(object: THREE.Object3D) {
+        let current: THREE.Object3D | null = object;
+
+        while (current) {
+          const target = current.userData.companyTarget as CompanySceneTarget | undefined;
+          if (target) return target;
+          current = current.parent;
+        }
+        return null;
+      }
+
+      function pickTarget(event: PointerEvent) {
+        const rect = renderer.domElement.getBoundingClientRect();
+        pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+        pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+        raycaster.setFromCamera(pointer, world.camera);
+        const hit = raycaster.intersectObjects(selectableObjects, true)[0];
+        return hit ? resolveTarget(hit.object) : null;
+      }
+
+      function handlePointerMove(event: PointerEvent) {
+        const target = pickTarget(event);
+        renderer.domElement.style.cursor = target ? 'pointer' : 'default';
+
+        if (target && target !== 'access-card' && target !== 'entrance') {
+          updateFocusedTarget(target);
+        }
+      }
+
+      function handlePointerLeave() {
+        renderer.domElement.style.cursor = 'default';
+      }
+
+      function handlePointerUp(event: PointerEvent) {
+        const target = pickTarget(event);
+        if (!target) return;
+
+        if (target === 'access-card') {
+          if (phaseRef.current === 'overview') updatePhase('card-selected');
           return;
         }
 
-        if (phaseRef.current === 'card-selected') {
-          updatePhase('entering');
-          updateFocusedTarget('entrance');
+        if (target === 'entrance') {
+          if (phaseRef.current === 'overview') {
+            updatePhase('card-selected');
+            updateFocusedTarget('entrance');
+            return;
+          }
+
+          if (phaseRef.current === 'card-selected') {
+            updatePhase('entering');
+            updateFocusedTarget('entrance');
+          }
+          return;
         }
 
-        return;
+        updateFocusedTarget(target);
       }
 
-      updateFocusedTarget(target);
-    }
+      function handleResize() {
+        const currentMount = mountRef.current;
+        if (!currentMount) return;
 
-    function handleResize() {
-      const currentMount = mountRef.current;
-
-      if (!currentMount) {
-        return;
+        const nextWidth = currentMount.clientWidth;
+        const nextHeight = currentMount.clientHeight;
+        world.camera.aspect = nextWidth / Math.max(nextHeight, 1);
+        world.camera.updateProjectionMatrix();
+        renderer.setSize(nextWidth, nextHeight);
       }
 
-      const nextWidth = currentMount.clientWidth;
-      const nextHeight = currentMount.clientHeight;
+      function render(time: number) {
+        const entering = phaseRef.current === 'entering' || phaseRef.current === 'inside';
+        const desiredProgress = entering ? 1 : 0;
 
-      world.camera.aspect = nextWidth / Math.max(nextHeight, 1);
-      world.camera.updateProjectionMatrix();
-      renderer.setSize(nextWidth, nextHeight);
-    }
+        progress = THREE.MathUtils.lerp(progress, desiredProgress, reducedMotion ? 1 : 0.022);
+        if (Math.abs(desiredProgress - progress) < 0.001) progress = desiredProgress;
 
-    function render(time: number) {
-      const entering = phaseRef.current === 'entering' || phaseRef.current === 'inside';
+        if (phaseRef.current === 'entering' && progress > 0.985) {
+          updatePhase('inside');
+        }
 
-      const desiredProgress = entering ? 1 : 0;
+        world.update(time / 1000, progress, {
+          cardSelected:
+            phaseRef.current === 'card-selected' ||
+            phaseRef.current === 'entering' ||
+            phaseRef.current === 'inside',
+          entering,
+          focusedTarget: focusedRef.current,
+        });
 
-      progress = THREE.MathUtils.lerp(progress, desiredProgress, reducedMotion ? 1 : 0.022);
+        const approachProgress = THREE.MathUtils.smoothstep(progress, 0.34, 0.72);
+        const insideProgress = THREE.MathUtils.smoothstep(progress, 0.7, 1);
 
-      if (Math.abs(desiredProgress - progress) < 0.001) {
-        progress = desiredProgress;
+        const desiredPosition = world.overviewPosition
+          .clone()
+          .lerp(world.entrancePosition, approachProgress)
+          .lerp(world.lobbyPosition, insideProgress);
+
+        const desiredTarget = world.overviewTarget
+          .clone()
+          .lerp(world.entranceTarget, approachProgress)
+          .lerp(world.lobbyTarget, insideProgress);
+
+        currentPosition.lerp(desiredPosition, reducedMotion ? 1 : 0.08);
+        currentTarget.lerp(desiredTarget, reducedMotion ? 1 : 0.08);
+
+        world.camera.position.copy(currentPosition);
+        world.camera.lookAt(currentTarget);
+        renderer.render(world.scene, world.camera);
+
+        animationFrame = requestAnimationFrame(render);
       }
 
-      if (phaseRef.current === 'entering' && progress > 0.985) {
-        updatePhase('inside');
-      }
-
-      world.update(time / 1000, progress, {
-        cardSelected:
-          phaseRef.current === 'card-selected' ||
-          phaseRef.current === 'entering' ||
-          phaseRef.current === 'inside',
-        entering,
-        focusedTarget: focusedRef.current,
-      });
-
-      const approachProgress = THREE.MathUtils.smoothstep(progress, 0.34, 0.72);
-
-      const insideProgress = THREE.MathUtils.smoothstep(progress, 0.7, 1);
-
-      const desiredPosition = world.overviewPosition
-        .clone()
-        .lerp(world.entrancePosition, approachProgress)
-        .lerp(world.lobbyPosition, insideProgress);
-
-      const desiredTarget = world.overviewTarget
-        .clone()
-        .lerp(world.entranceTarget, approachProgress)
-        .lerp(world.lobbyTarget, insideProgress);
-
-      currentPosition.lerp(desiredPosition, reducedMotion ? 1 : 0.08);
-      currentTarget.lerp(desiredTarget, reducedMotion ? 1 : 0.08);
-
-      world.camera.position.copy(currentPosition);
-      world.camera.lookAt(currentTarget);
-
-      renderer.render(world.scene, world.camera);
-
+      renderer.domElement.addEventListener('pointermove', handlePointerMove);
+      renderer.domElement.addEventListener('pointerleave', handlePointerLeave);
+      renderer.domElement.addEventListener('pointerup', handlePointerUp);
+      window.addEventListener('resize', handleResize);
       animationFrame = requestAnimationFrame(render);
+
+      runtimeCleanup = () => {
+        cancelAnimationFrame(animationFrame);
+        renderer.domElement.removeEventListener('pointermove', handlePointerMove);
+        renderer.domElement.removeEventListener('pointerleave', handlePointerLeave);
+        renderer.domElement.removeEventListener('pointerup', handlePointerUp);
+        window.removeEventListener('resize', handleResize);
+        world.dispose();
+      };
     }
 
-    renderer.domElement.addEventListener('pointermove', handlePointerMove);
-    renderer.domElement.addEventListener('pointerleave', handlePointerLeave);
-    renderer.domElement.addEventListener('pointerup', handlePointerUp);
-    window.addEventListener('resize', handleResize);
-
-    animationFrame = requestAnimationFrame(render);
+    void startWorld();
 
     return () => {
-      cancelAnimationFrame(animationFrame);
-
-      renderer.domElement.removeEventListener('pointermove', handlePointerMove);
-      renderer.domElement.removeEventListener('pointerleave', handlePointerLeave);
-      renderer.domElement.removeEventListener('pointerup', handlePointerUp);
-      window.removeEventListener('resize', handleResize);
-
-      world.dispose();
+      disposed = true;
+      runtimeCleanup?.();
       renderer.dispose();
 
       if (renderer.domElement.parentNode === mount) {
@@ -274,26 +279,40 @@ export function CompanyWorldView() {
             .filter(Boolean)
             .join(' ')}
         />
-        <span>{phase === 'inside' ? 'ACCESS GRANTED' : 'SECURE ENTRY'}</span>
+        <span>
+          {assetState === 'loading'
+            ? 'LOADING HQ'
+            : assetState === 'error'
+              ? 'HQ UNAVAILABLE'
+              : phase === 'inside'
+                ? 'ACCESS GRANTED'
+                : 'SECURE ENTRY'}
+        </span>
       </div>
 
       <div className="companyWorldIntro">
         <p className="companyWorldEyebrow">Interactive company world</p>
         <h1>{phase === 'inside' ? 'Welcome inside.' : 'Explore the company.'}</h1>
         <p>
-          {phase === 'inside'
-            ? 'The lobby is the first step into the Trinity6 digital company.'
-            : 'Touch a department to inspect it, or use the access card to enter the building.'}
+          {assetState === 'error'
+            ? 'The 3D headquarters could not be loaded. Core company content remains available.'
+            : phase === 'inside'
+              ? 'The lobby is the first step into the Trinity6 digital company.'
+              : 'Touch a department to inspect it, or use the access card to enter the building.'}
         </p>
 
-        <button type="button" onClick={presentCard}>
-          {phase === 'overview'
-            ? 'Select access card'
-            : phase === 'card-selected'
-              ? 'Present access card'
-              : phase === 'inside'
-                ? 'Return to overview'
-                : 'Opening secure entrance…'}
+        <button type="button" onClick={presentCard} disabled={assetState !== 'ready'}>
+          {assetState === 'loading'
+            ? 'Loading headquarters…'
+            : assetState === 'error'
+              ? '3D unavailable'
+              : phase === 'overview'
+                ? 'Select access card'
+                : phase === 'card-selected'
+                  ? 'Present access card'
+                  : phase === 'inside'
+                    ? 'Return to overview'
+                    : 'Opening secure entrance…'}
         </button>
       </div>
 
@@ -306,7 +325,9 @@ export function CompanyWorldView() {
         ) : (
           <>
             <span>Explore</span>
-            <strong>Tap a glowing system</strong>
+            <strong>
+              {assetState === 'ready' ? 'Tap a highlighted system' : 'Preparing 3D world'}
+            </strong>
           </>
         )}
       </div>
@@ -319,7 +340,10 @@ export function CompanyWorldView() {
 
       <div className="srOnly">
         <h2>Trinity6 interactive company</h2>
-        <p>A real-time 3D company building with interactive departments and secure access.</p>
+        <p>
+          A real-time 3D headquarters with interactive rooms, infrastructure, secure access, and
+          cybersecurity learning paths.
+        </p>
       </div>
     </div>
   );
